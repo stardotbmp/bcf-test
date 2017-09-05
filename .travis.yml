@@ -18,6 +18,7 @@ after_success:
 
 notifications:
   email:
+    recipients:
     - jonathon@stardotbmp.com
     on_success: always # default: change
     on_failure: always # default: always
