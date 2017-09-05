@@ -14,7 +14,7 @@ install:
   - npm install -g firebase-tools
 
 after_success:
-  - firebase deploy --token $FIREBASE_TOKEN
+  - firebase deploy --project bcf-test-58aad --token $FIREBASE_TOKEN
 
 notifications:
   email:
