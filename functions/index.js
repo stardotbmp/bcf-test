@@ -938,6 +938,6 @@ const projects_Get = (mode = 'valid') => {
 
         const valid_projects = Object.keys(projects).map(key => filterToSchema(schema, projects[key]));
 
-        return (mode === 'valid') ? valid_projects : projects;
+        return (mode === 'full') ? projects : valid_projects;
     });
 };
