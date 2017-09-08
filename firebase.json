@@ -19,7 +19,7 @@
                 ],
                 "rewrites": [
                 {
-                        "source": "/bcf/**",
+                        "source": "/rest/api/**",
                         "function": "bcf"
                 },
                 {

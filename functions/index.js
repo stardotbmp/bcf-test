@@ -18,7 +18,9 @@ const validateVersion = (req, res, next) => {
         res.status(406).send({
             "message": "Schema Version not supported.",
             "errors": [{
-                "Requested Schema": res.locals.bcfVersion
+                "Url": res.locals.url,
+                "Requested Schema": res.locals.bcfVersion,
+                "Version": 0.0.1
             }]
         });
     } else {
@@ -31,6 +33,7 @@ const setHeaders = (req, res, next) => {
     res
         .set('Content-Type', 'application/json')
         .set('x-bcf-version', res.locals.bcfVersion);
+        .set('Cache-Control', 'no-cache, no-store');
 
     next();
 };
@@ -106,6 +109,20 @@ app.get('/:version/projects', (req, res) => {
             .send(`Query Error: ${error}`);
     });
 });
+
+const projects_Get = (mode = 'valid') => {
+
+    const schema = require("./Schemas_draft-03/Project/project_GET.json");
+    const projects_ref = admin.database().ref('data/projects');
+
+    return projects_ref.once('value').then((snapshot) => {
+        const projects = snapshot.val();
+
+        const valid_projects = Object.keys(projects).map(key => filterToSchema(schema, projects[key]));
+
+        return (mode === 'full') ? projects : valid_projects;
+    });
+};
 
 app.get('/:version/projects/:project_id', (req, res) => {
     res
@@ -926,18 +943,45 @@ app.get('/:version/projects/:project_id/topics/:topic_guid/comments/:comment_gui
         }]);
 });
 
+/**
+ * The BCF endpoint runs the `app` which contains the
+ */
 exports.bcf = functions.https.onRequest(app);
 
-const projects_Get = (mode = 'valid') => {
 
-    const schema = require("./Schemas_draft-03/Project/project_GET.json");
-    const projects_ref = admin.database().ref('2_1/projects');
+/**
+ * JIRA endpoint is the webhook used by the JIRA platform.
+ *
+ * This is, for now, a single endpoint used for all JIRA activity.
+ * Future revisions may deal with specific events to separate the
+ * platform events from the issue events.
+ */
+exports.jira = functions.https.onRequest((req, res) => {
 
-    return projects_ref.once('value').then((snapshot) => {
-        const projects = snapshot.val();
+    const webhooks_ref = admin.database().ref('import/from_jira');
 
-        const valid_projects = Object.keys(projects).map(key => filterToSchema(schema, projects[key]));
 
-        return (mode === 'full') ? projects : valid_projects;
-    });
-};
+    if (!req.body) {
+        res.status(422).send("No request.body");
+        return;
+    }
+
+    const event = req.body.webhookEvent;
+
+    let route = webhooks_ref.child(event);
+
+    if (req.body.issue_event_type_name) {
+        route = webhooks_ref.child(req.body.issue_event_type_name);
+    }
+
+    let payload = {
+        timestamp: req.body.timestamp,
+        body: req.body,
+        params: req.params,
+        query: req.query
+    };
+
+    route.push(payload);
+
+    res.status(201).send();
+});
