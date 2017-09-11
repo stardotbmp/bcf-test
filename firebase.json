@@ -21,10 +21,6 @@
                 {
                         "source": "/rest/api/**",
                         "function": "bcf"
-                },
-                {
-                        "source": "**",
-                        "destination": "/index.html"
                 }]
         }
 }

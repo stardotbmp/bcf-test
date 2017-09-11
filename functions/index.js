@@ -10,29 +10,43 @@ admin.initializeApp(functions.config().firebase);
 // Middleware to validate the schema version is accepted.
 const validateVersion = (req, res, next) => {
 
-    res.locals.bcfVersion = res.locals.url.split('/')[1];
+    let terms = res.locals.url.split('/');
 
+    let restApi = terms.indexOf('api');
+
+    res.locals.bcfVersion = terms.slice(restApi)[1];
+
+    res.locals.url = terms.slice(restApi+1);
+
+    //res.locals.bcfVersion = res.locals.url.split('/')[1];
+
+/*
     if (res.locals.bcfVersion != "2.1" &&
         res.locals.bcfVersion != "latest" &&
         res.locals.bcfVersion != "versions") {
-        res.status(406).send({
+        res.status(404).send({
             "message": "Schema Version not supported.",
             "errors": [{
                 "Url": res.locals.url,
                 "Requested Schema": res.locals.bcfVersion,
-                "Version": 0.0.1
+                "Version": "0.0.2"
             }]
         });
+
+        console.log('res.locals.url');
     } else {
         res.locals.bcfVersion = "2.1";
         next();
     }
+    */
+
+   next();
 };
 
 const setHeaders = (req, res, next) => {
     res
         .set('Content-Type', 'application/json')
-        .set('x-bcf-version', res.locals.bcfVersion);
+        .set('x-bcf-version', res.locals.bcfVersion)
         .set('Cache-Control', 'no-cache, no-store');
 
     next();
@@ -51,7 +65,7 @@ app
     .use(validateVersion)
     .use(setHeaders);
 
-app.get('/', (req, res) => {
+app.get('/rest/api/', (req, res) => {
     res.status(200)
         .set('Content-Type', 'text/text')
         .send('text content');
