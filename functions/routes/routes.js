@@ -7,7 +7,6 @@ var router = express.Router();
 var projects = require('./projects');
 var users = require('./users');
 var authentications = require('./authentications');
-var testing_170914 = require('./testing_170914');
 
 router.use(function(req, res, next) {
     console.log("API Routes called");

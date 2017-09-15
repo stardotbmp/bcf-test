@@ -8,7 +8,7 @@ const middleware = require("./middleware");
 
 // Provide custom logger which prefixes log statements with "[FIREBASE]"
 admin.database.enableLogging(function(message) {
-  console.log("[FIREBASE]", message);
+  // console.log("[FIREBASE]", message);
 });
 
 var serviceAccount = require("../credentials.json");
@@ -20,12 +20,12 @@ admin.initializeApp({
 //admin.initializeApp(functions.config().firebase);
 
 // validations and url processing
-/*app
+app
     .use(middleware.queryMode)
     .use(middleware.stripBcfPath)
     .use(middleware.validateVersion)
     .use(middleware.setHeaders);
-*/
+
 // external paths by endpoint category
 var routes = require('./routes/routes');
 
