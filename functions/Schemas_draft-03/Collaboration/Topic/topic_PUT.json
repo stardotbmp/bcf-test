@@ -8,6 +8,10 @@
             "type": ["string",
             "null"]
         },
+        "self": {
+            "type": "string",
+            "required": false
+        },
         "topic_status": {
             "type": ["string",
             "null"]

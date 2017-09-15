@@ -6,6 +6,10 @@
             "required": true,
             "type": "string"
         },
+        "self": {
+            "type": "string",
+            "required": false
+        },
         "topic_type": {
             "type": ["string",
             "null"]

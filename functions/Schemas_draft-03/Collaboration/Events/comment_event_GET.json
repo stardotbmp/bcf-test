@@ -24,6 +24,10 @@
             "items": {
                 "$ref": "event_action.json"
             }
+        },
+        "self": {
+            "type": "string",
+            "required": false
         }
     }
 }

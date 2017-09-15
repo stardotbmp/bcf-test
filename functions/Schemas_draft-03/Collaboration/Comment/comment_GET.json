@@ -38,6 +38,10 @@
             "type": ["string",
             "null"]
         },
+        "self": {
+            "type": "string",
+            "required": false
+        },
         "authorization": {
             "type": "object",
             "required": false,
