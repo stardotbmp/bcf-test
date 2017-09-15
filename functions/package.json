@@ -1,14 +1,22 @@
 {
   "name": "functions",
+  "version": "0.0.1",
   "description": "Cloud Functions for Firebase",
+  "keywords": [
+    "BCF",
+    "Server",
+    "Firebase",
+    "Cloud Functions"
+  ],
+  "author": "Jonathon Broughton <jonathon@stardotbmp.com> (http://stardotbmp.com/)",
   "dependencies": {
     "express": "^4.14.1",
     "firebase-admin": "~4.2.1",
     "firebase-functions": "^0.5.9",
-    "json-schema-filter": "^0.1.5"
+    "json-schema-filter": "^0.1.5",
+    "moment": "^2.18.1",
+    "response-time": "^2.3.2",
+    "uuid": "^3.1.0"
   },
-  "private": true,
-  "quokka": {
-    "babel": true
-  }
+  "private": true
 }
