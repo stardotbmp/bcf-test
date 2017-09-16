@@ -1,29 +1,50 @@
 {
-    "$schema": "http://json-schema.org/draft-03/schema#",
-    "title": "project_GET",
-    "description": "Schema for single project GET, BCF REST API.",
-    "type": "object",
-    "properties": {
-        "project_id": {
-            "type": "string",
-            "required": true
-        },
-        "name": {
-            "type": "string",
-            "required": true
-        },
-        "self": {
-            "type": "string",
-            "required": false
-        },
-        "authorization": {
-            "type": "object",
-            "required": false,
-            "properties": {
-                "project_actions": {
-                    "$ref": "../Collaboration/Action/project_actions.json"
+        "$schema": "http://json-schema.org/draft-03/schema#",
+        "title": "project_GET",
+        "description": "Schema for single project GET, BCF REST API.",
+        "type": "object",
+        "properties":
+        {
+                "project_id":
+                {
+                        "type": "string",
+                        "required": true
+                },
+                "name":
+                {
+                        "type": "string",
+                        "required": true
+                },
+                "links":
+                {
+                        "type": "object",
+                        "required": false,
+                        "properties":
+                        {
+                                "self":
+                                {
+                                        "type": "string",
+                                        "required": true
+                                },
+                                "topics":
+                                {
+                                        "type": "string",
+                                        "required": false
+                                }
+                        },
+                        "additionalProperties": true
+                },
+                "authorization":
+                {
+                        "type": "object",
+                        "required": false,
+                        "properties":
+                        {
+                                "project_actions":
+                                {
+                                        "$ref": "../Collaboration/Action/project_actions.json"
+                                }
+                        }
                 }
-            }
         }
-    }
 }

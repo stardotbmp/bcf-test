@@ -8,58 +8,77 @@ const middleware = require("./middleware");
 
 // Provide custom logger which prefixes log statements with "[FIREBASE]"
 admin.database.enableLogging(function(message) {
-  // console.log("[FIREBASE]", message);
+        // console.log("[FIREBASE]", message);
 });
 
-var serviceAccount = require("../credentials.json");
+var serviceAccount = require("./credentials.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://bcf-test-58aad.firebaseio.com/"
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: "https://bcf-test-58aad.firebaseio.com/"
 });
 //admin.initializeApp(functions.config().firebase);
 
 // validations and url processing
 app
-    .use(middleware.queryMode)
-    .use(middleware.stripBcfPath)
-    .use(middleware.validateVersion)
-    .use(middleware.setHeaders);
+        .use(middleware.queryMode)
+        .use(middleware.stripBcfPath)
+        .use(middleware.validateVersion)
+        .use(middleware.setHeaders);
 
 // external paths by endpoint category
 var routes = require('./routes/routes');
 
-app.get('/rest/api/versions', (req, res) => {
+app.get('/versions', (req, res) => {
 
-    const schemas_ref = admin.database().ref('schemas/bcf/versions');
-    console.log('API:Versions');
+        const schemas_ref = admin.database().ref('schemas/bcf/versions');
+        console.log('API:Versions');
+        const versionsList = [];
 
-    const ref = schemas_ref.once('value',(snapshot) => {
-        res
-            .status(200)
-            .send(snapshot.val());
-    }, (err) => {
-      console.log(err.stack);
-      res.status(500).send('error');
-    });
+        const ref = schemas_ref.once('value', (snapshot) => {
+
+            const versions = snapshot.val();
+
+            Object.keys(versions).forEach((v) => {
+
+                let version = versions[v];
+
+                version.self = res.locals.selfUrl.replace("/versions","") + '/' + version.version_id;
+
+                versionsList.push(version);
+            });
+
+                res
+                        .status(200)
+                        .send(versionsList);
+        }, (err) => {
+                console.log(err.stack);
+                res.status(500).send('error');
+        });
 });
 
-app.use('/rest/api/:version', function(req, res, next) {
+app.use('/:version', function(req, res, next) {
 
-    console.log('Schema version: ' + req.params.version);
+        console.log('Schema version: ' + req.params.version);
 
-    res.locals.api_version = req.params.version;
+        res.locals.api_version = req.params.version;
 
-    next();
+        next();
 });
 
+app.use('/:version', routes);
 
-app.use('/rest/api/:version', routes);
-
-app.get('/rest/api/', (req, res) => {
-    res.status(200)
-        .set('Content-Type', 'text/text')
-        .send('BCF Real-time BCF Server');
+app.get('/', (req, res) => {
+        res.status(200)
+                .send({
+                        "server": {
+                                "title": "BCF Real-time BCF Server"
+                        },
+                        "links": [
+                                { "href": res.locals.selfUrl },
+                                { "versions": res.locals.selfUrl + "/versions" }
+                        ]
+                });
 });
 
 /*
@@ -955,6 +974,8 @@ app.get('/:version/projects/:project_id/topics/:topic_guid/comments/:comment_gui
  */
 exports.bcf = functions.https.onRequest(app);
 
+
+
 /**
  * JIRA endpoint is the webhook used by the JIRA platform.
  *
@@ -964,36 +985,37 @@ exports.bcf = functions.https.onRequest(app);
  */
 exports.jira = functions.https.onRequest((req, res) => {
 
-    const webhooks_ref = admin.database().ref('import/from_jira');
+        const webhooks_ref = admin.database().ref('import/from_jira');
 
-    if (!req.body) {
-        res.status(422).send("No request.body");
-        return;
-    }
+        if (!req.body) {
+                res.status(422).send("No request.body");
+                return;
+        }
 
-    const event = req.body.webhookEvent;
+        const event = req.body.webhookEvent;
 
-    let route = webhooks_ref.child(event);
+        let route = webhooks_ref.child(event);
 
-    if (req.body.issue_event_type_name) {
-        route = webhooks_ref.child(req.body.issue_event_type_name);
-    }
+        if (req.body.issue_event_type_name) {
+                route = webhooks_ref.child(req.body.issue_event_type_name);
+        }
 
-    let payload = {
-        timestamp: req.body.timestamp,
-        body: req.body,
-        params: req.params,
-        query: req.query
-    };
+        let payload = {
+                timestamp: req.body.timestamp,
+                body: req.body,
+                params: req.params,
+                query: req.query
+        };
 
-    route.push(payload);
+        route.push(payload);
 
-    res.status(201).send();
+        res.status(201).send();
 });
 
 exports.test = functions.https.onRequest((req, res) => {
-    res.send('blah');
+        res.send('blah');
 });
+
 const jiraOnComment = require('./triggers/onComment');
 exports.onJiraCommentCreated = jiraOnComment.created;
 exports.onJiraCommentUpdated = jiraOnComment.updated;

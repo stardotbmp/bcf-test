@@ -5,12 +5,45 @@ const admin = require("firebase-admin");
 const filterToSchema = require("json-schema-filter");
 const ifcGuid = require("../ifcGuid");
 const router = express.Router();
+const middleware = require("../middleware");
+
+const topicSchema = require("../Schemas_draft-03/Collaboration/Topic/topic_GET.json");
+
+var comments = require('./comments');
+router.use('/:topic_id', middleware.topicId);
+router.use('/:topic_id/comments', comments);
+
+router.route('/:topic_id')
+    .get((req, res) => {
+        const topics_ref = admin.database().ref('data/topics');
+
+        const topic_id = req.params.topic_id;
+
+        topics_ref.child(topic_id).once('value', (snapshot) => {
+
+            const topic = snapshot.val();
+
+            topic.links = {
+                "self": res.locals.selfUrl,
+                "project": res.locals.selfUrl.replace(/\/topics\/[\-A-Z0-9]*$/i,""),
+                "comments": res.locals.selfUrl + '/comments'
+            };
+
+            topic.guid = topic_id;
+
+            const validTopic = filterToSchema(topicSchema, topic);
+            res.send((res.locals.mode === 'full') ? topic : validTopic);
+        });
+
+    })
+    .put((req, res) => {})
+    .post((req, res) => {})
+    .patch(httpError.NOT_IMPLEMENTED)
+    .all(httpError.NOT_ALLOWED);
 
 router.route('/')
     .get((req, res) => {
-        const schema = require("../Schemas_draft-03/Collaboration/Topic/topic_GET.json");
         const topics_ref = admin.database().ref('data/topics');
-        const project_topics_ref = admin.database().ref('data/project_topics');
 
         const filter_params = [
             'creation_author',
@@ -42,22 +75,36 @@ router.route('/')
                 if (snapshot.exists()) {
 
                     snapshot.forEach((topicSnapshot) => {
-                        topicsList.push(topicSnapshot.val());
+
+                        let topic = topicSnapshot.val();
+
+                        topic.links = {
+                            "self": res.locals.selfUrl + '/' + topicSnapshot.key,
+                            "project": res.locals.selfUrl.replace(/\/topics$/i,""),
+                           /* "comments": res.locals.selfUrl + '/' + topicSnapshot.key + '/comments'*/
+                        };
+
+                        topic.self = res.locals.selfUrl + '/' + topicSnapshot.key;
+                        topic.guid = topicSnapshot.key;
+
+                        console.log("topic self: " + topic.self);
+
+                        topicsList.push(topic);
                     });
 
-                    const valid_topics = topicsList
-                        .map(topic => filterToSchema(schema, topic));
+                    const validTopics = topicsList
+                        .map(topic => filterToSchema(topicSchema, topic));
 
-                    res.send(topicsList);
-
+                    res.send((res.locals.mode === 'full') ? topicsList : validTopics);
                 } else {
-
                     res.status(200).send([]);
                 }
             });
 
     })
-    .put(httpError.NOT_IMPLEMENTED)
+    .post(httpError.NOT_IMPLEMENTED)
     .all(httpError.NOT_ALLOWED);
 
 module.exports = router;
+
+

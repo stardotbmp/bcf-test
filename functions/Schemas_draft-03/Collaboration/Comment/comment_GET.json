@@ -1,52 +1,86 @@
 {
     "title": "comment_GET",
     "type": "object",
-    "properties": {
-        "guid": {
+    "properties":
+    {
+        "guid":
+        {
             "required": true,
             "type": "string"
         },
-        "date": {
+        "date":
+        {
             "required": true,
             "type": "string"
         },
-        "author": {
+        "author":
+        {
             "required": true,
             "type": "string"
         },
-        "comment": {
+        "comment":
+        {
             "required": true,
             "type": "string"
         },
-        "topic_guid": {
+        "topic_guid":
+        {
             "required": true,
             "type": "string"
         },
-        "viewpoint_guid": {
+        "viewpoint_guid":
+        {
             "type": ["string",
-            "null"]
+                "null"
+            ]
         },
-        "reply_to_comment_guid": {
+        "reply_to_comment_guid":
+        {
             "type": ["string",
-            "null"]
+                "null"
+            ]
         },
-        "modified_date": {
+        "modified_date":
+        {
             "type": ["string",
-            "null"]
+                "null"
+            ]
         },
-        "modified_author": {
+        "modified_author":
+        {
             "type": ["string",
-            "null"]
+                "null"
+            ]
         },
-        "self": {
-            "type": "string",
-            "required": false
-        },
-        "authorization": {
+        "links":
+        {
             "type": "object",
             "required": false,
-            "properties": {
-                "comment_actions": {
+            "properties":
+            {
+                "self":
+                {
+                    "type": "string"
+                },
+                "topic":
+                {
+                    "type": "string"
+                },
+                "project":
+                {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
+        "authorization":
+        {
+            "type": "object",
+            "required": false,
+            "properties":
+            {
+                "comment_actions":
+                {
                     "$ref": "../Action/comment_actions.json"
                 }
             }
