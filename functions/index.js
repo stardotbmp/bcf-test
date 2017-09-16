@@ -994,3 +994,7 @@ exports.jira = functions.https.onRequest((req, res) => {
 exports.test = functions.https.onRequest((req, res) => {
     res.send('blah');
 });
+const jiraOnComment = require('./triggers/onComment');
+exports.onJiraCommentCreated = jiraOnComment.created;
+exports.onJiraCommentUpdated = jiraOnComment.updated;
+exports.onJiraCommentDeleted = jiraOnComment.deleted;
