@@ -61,13 +61,11 @@ exports.created = functions.database.ref('/import/from_jira/issue_commented/{pus
 
             commentReference.set(dataComment)
                 .then(() => {
-                    console.log('comment created');
                     topicReference.update(issueFields)
                         .then(() => {
-                            console.log('topic updated');
                             topicCommentReference.update(fieldComments)
                                 .then(() => {
-                                    console.log('topicComments updated');
+                                    event.data.ref.remove();
                                 }).catch(() => {
                                     console.log('topicComments not updated');
                                 });
@@ -82,11 +80,72 @@ exports.created = functions.database.ref('/import/from_jira/issue_commented/{pus
     });
 
 exports.updated = functions.database.ref('/import/from_jira/comment_updated/{pushId}')
-    .onWrite((event) => {
-        console.log(event.data.val());
+    .onCreate((event) => {
+
+        if (event.data.exists()) {
+            const data = event.data.val();
+            const updatedComment = data.body.comment;
+            const topic = updatedComment.self.match(/issue\/(\d+)\/comment/)[1];
+            const topicId = new ifcGuid.uuid(topic);
+            const commentId = new ifcGuid.uuid(updatedComment.id);
+
+            const dataComment = {
+                author: updatedComment.author.key,
+                modified_author: updatedComment.updateAuthor.key,
+                comment: updatedComment.body,
+                date: updatedComment.created,
+                modified_date: updatedComment.updated,
+                topic_guid: topicId.uuid
+            };
+
+            const commentReference = admin.database()
+                .ref('data/comments')
+                .child(commentId.uuid);
+
+            const topicReference = admin.database()
+                .ref('data/topics')
+                .child(topicId.uuid);
+
+            commentReference.update(dataComment)
+                .then(() => {
+                    console.log('comment updated.');
+                    topicReference.update({ modified_date: updatedComment.updated })
+                        .then(() => {
+                            event.data.ref.remove();
+                        })
+                        .catch((error) => {
+                            console.log('issue modified date not updated.');
+                        });
+                })
+                .catch((error) => {
+                    console.log('comment not updated.');
+                });
+        }
     });
 
 exports.deleted = functions.database.ref('/import/from_jira/comment_deleted/{pushId}')
-    .onWrite((event) => {
-        console.log(event.data.val());
+    .onCreate((event) => {
+        if (event.data.exists()) {
+            const data = event.data.val();
+            const deletedComment = data.body.comment;
+            const commentId = new ifcGuid.uuid(deletedComment.id);
+            const topic = deletedComment.self.match(/issue\/(\d+)\/comment/)[1];
+            const topicId = new ifcGuid.uuid(topic);
+
+            const commentReference = admin.database()
+                .ref('data/comments')
+                .child(commentId.uuid);
+
+            const topicCommentReference = admin.database()
+                .ref('data/topics')
+                .child(topicId.uuid)
+                .child('comments')
+                .child(commentId.uuid);
+
+            commentReference.remove();
+            topicCommentReference.remove();
+            event.data.ref.remove();
+        }
+
+        return;
     });
