@@ -1,6 +1,17 @@
 {
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
+    "rules": {
+        ".read": true,
+        ".write": true,
+        "data": {
+            "comments": {
+                ".indexOn": "topic_guid"
+            },
+            "topics": {
+                ".indexOn": "project_id"
+            },
+            "users": {
+                ".indexOn": "id"
+            }
+        }
+    }
 }
