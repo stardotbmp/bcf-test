@@ -12,6 +12,9 @@ exports.created = functions.database.ref('/import/from_jira/issue_commented/{pus
             const topicUpdate = data.body.issue;
             const commentId = new ifcGuid.uuid(newComment.id);
             const topicId = new ifcGuid.uuid(topicUpdate.id);
+            const issueFields = {};
+            const fields = topicUpdate.fields;
+            let fieldComments;
 
             const dataComment = {
                 author: newComment.author.key,
@@ -22,8 +25,20 @@ exports.created = functions.database.ref('/import/from_jira/issue_commented/{pus
                 topic_guid: topicId.uuid
             };
 
-            const issueFields = {};
-            let fieldComments;
+            issueFields.assigned_to = fields.assignee.key;
+            issueFields.creation_date = fields.created;
+            issueFields.creation_author = fields.reporter.key;
+            issueFields.topic_type = fields.issuetype.name;
+            issueFields.priority = fields.priority.name;
+            issueFields.project_id = (new ifcGuid.uuid(fields.project.id)).uuid;
+            issueFields.topic_status = fields.status.name;
+            issueFields.title = fields.summary;
+            issueFields.modified_date = fields.updated;
+            issueFields.referenceLinks = ['https://grfnconsulting.atlassian.net/browse/' + fields.key];
+
+            for (const f in issueFields)
+                if (typeof issueFields[f] === 'undefined')
+                    delete issueFields[f];
 
             if (topicUpdate.fields.hasOwnProperty('comment')) {
                 fieldComments = topicUpdate.fields.comment.comments.reduce((o, c) => {
@@ -31,53 +46,6 @@ exports.created = functions.database.ref('/import/from_jira/issue_commented/{pus
                     o[u.uuid] = true;
                     return o;
                 }, {});
-            }
-
-            for (let fieldName in topicUpdate.fields) {
-
-                let field;
-                if (topicUpdate.fields.hasOwnProperty(fieldName)) {
-                    field = topicUpdate.fields[fieldName];
-                }
-
-                switch (fieldName) {
-                    case 'assignee':
-                        issueFields.assigned_to = field.key;
-                        break;
-                        //  case 'comment':
-                        //    issueFields.comments = fieldComments;
-                        //  break;
-                    case 'created':
-                        issueFields.creation_date = field;
-                        break;
-                    case 'reporter': // as opposed to 'creator'
-                        issueFields.creation_author = field.key;
-                        break;
-                    case 'issuetype':
-                        issueFields.topic_type = field.name;
-                        break;
-                    case 'priority':
-                        issueFields.priority = field.name;
-                        break;
-                    case 'project':
-                        issueFields.project_id = (new ifcGuid.uuid(field.id)).uuid;
-                        break;
-                    case 'status':
-                        issueFields.topic_status = field.name;
-                        break;
-                    case 'summary':
-                        issueFields.title = field;
-                        break;
-                    case 'updated':
-                        issueFields.modified_date = field;
-                        break;
-                    case 'key':
-                        issueFields.referenceLinks = ['https://grfnconsulting.atlassian.net/browse/' + field];
-                        break;
-                    default:
-
-                        break;
-                }
             }
 
             const commentReference = admin.database()
