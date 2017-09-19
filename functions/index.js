@@ -974,49 +974,15 @@ app.get('/:version/projects/:project_id/topics/:topic_guid/comments/:comment_gui
  */
 exports.bcf = functions.https.onRequest(app);
 
+const jiraWebhook = require('./triggers/onJira');
+exports.jira = jiraWebhook.jira;
+
+const onJiraComment = require('./triggers/onComment');
+//exports.onJiraCommentCreated = jiraOnComment.created;
+//exports.onJiraCommentUpdated = jiraOnComment.updated;
+//exports.onJiraCommentDeleted = jiraOnComment.deleted;
+exports.onJiraComment = onJiraComment.event;
 
 
-/**
- * JIRA endpoint is the webhook used by the JIRA platform.
- *
- * This is, for now, a single endpoint used for all JIRA activity.
- * Future revisions may deal with specific events to separate the
- * platform events from the issue events.
- */
-exports.jira = functions.https.onRequest((req, res) => {
-
-        const webhooks_ref = admin.database().ref('import/from_jira');
-
-        if (!req.body) {
-                res.status(422).send("No request.body");
-                return;
-        }
-
-        const event = req.body.webhookEvent;
-
-        let route = webhooks_ref.child(event);
-
-        if (req.body.issue_event_type_name) {
-                route = webhooks_ref.child(req.body.issue_event_type_name);
-        }
-
-        let payload = {
-                timestamp: req.body.timestamp,
-                body: req.body,
-                params: req.params,
-                query: req.query
-        };
-
-        route.push(payload);
-
-        res.status(201).send();
-});
-
-exports.test = functions.https.onRequest((req, res) => {
-        res.send('blah');
-});
-
-const jiraOnComment = require('./triggers/onComment');
-exports.onJiraCommentCreated = jiraOnComment.created;
-exports.onJiraCommentUpdated = jiraOnComment.updated;
-exports.onJiraCommentDeleted = jiraOnComment.deleted;
+const onJiraIssue = require('./triggers/onIssue');
+exports.onJiraIssue = onJiraIssue.event;
