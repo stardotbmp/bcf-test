@@ -978,11 +978,10 @@ const jiraWebhook = require('./triggers/onJira');
 exports.jira = jiraWebhook.jira;
 
 const onJiraComment = require('./triggers/onComment');
-//exports.onJiraCommentCreated = jiraOnComment.created;
-//exports.onJiraCommentUpdated = jiraOnComment.updated;
-//exports.onJiraCommentDeleted = jiraOnComment.deleted;
 exports.onJiraComment = onJiraComment.event;
-
 
 const onJiraIssue = require('./triggers/onIssue');
 exports.onJiraIssue = onJiraIssue.event;
+
+const onBcfUpload = require('./triggers/onBcfzip');
+exports.onBcf = onBcfUpload.unzipBcf;

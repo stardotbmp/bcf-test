@@ -28,7 +28,7 @@ exports.event = functions.database.ref('/import/from_jira/issue/{event}/{id}').o
                 console.log('Event handler not implemented for ' + event.params.event);
 
                 // unhandled data reference - delete.
-                event.data.ref.remove();
+                //      event.data.ref.remove();
                 break;
         }
     }
@@ -47,6 +47,7 @@ const issue_updated = function(event) {
     const projectId = new ifcGuid.uuid(projectUpdate.id);
     const issueFields = {};
 
+    issueFields.index = topicUpdate.key;
     issueFields.assigned_to = definedAttribute(fields.assignee, 'key');
     issueFields.creation_date = fields.created;
     issueFields.creation_author = definedAttribute(fields.reporter, 'key');
@@ -58,6 +59,7 @@ const issue_updated = function(event) {
     issueFields.title = fields.summary;
     issueFields.modified_date = fields.updated;
     issueFields.modified_user = topicUpdateUser.key;
+    issueFields.due_date = (fields.duedate) ? fields.duedate : undefined;
 
     if (definedAttribute(fields.key)) {
         issueFields.referenceLinks = ['https://grfnconsulting.atlassian.net/browse/' +
@@ -65,7 +67,13 @@ const issue_updated = function(event) {
         ];
     }
 
-    let labels = (fields.labels || []).reduce((labels, label) => labels[label] = true, {});
+    console.log(fields.labels);
+
+    let labels = (fields.labels || [])
+        .reduce((labels, label) => {
+            labels[label] = true;
+            return labels;
+        }, {});
 
     for (const f in issueFields)
         if (typeof issueFields[f] === 'undefined')
@@ -79,8 +87,10 @@ const issue_updated = function(event) {
         .ref('data/projects')
         .child(projectId.uuid);
 
-        const labelsReference = admin.database()
+    const labelsReference = admin.database()
         .ref('data/topics/')
+        .child(topicId.uuid)
+        .child('labels');
 
     topicReference
         .update(issueFields)
@@ -93,7 +103,14 @@ const issue_updated = function(event) {
                 })
                 .then(() => {
                     console.log('project updated.');
-                    event.data.ref.remove();
+                    console.log(labels);
+                    labelsReference.update(labels)
+                        .then(() => {
+                            console.log('labels updated');
+                            event.data.ref.remove();
+                        }).catch((error) => {
+                            console.log('labels not updated.', error);
+                        });
                 }).catch((error) => {
                     console.log('project not updated', error);
                 });
