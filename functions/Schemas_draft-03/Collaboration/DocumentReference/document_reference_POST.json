@@ -9,6 +9,10 @@
         "description": {
             "type": ["string",
             "null"]
+        },
+        "self": {
+            "type": "string",
+            "required": false
         }
     }
 }

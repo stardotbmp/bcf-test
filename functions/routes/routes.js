@@ -7,7 +7,6 @@ var router = express.Router();
 var projects = require('./projects');
 var users = require('./users');
 var authentications = require('./authentications');
-var testing_170914 = require('./testing_170914');
 
 router.use(function(req, res, next) {
     console.log("API Routes called");
@@ -19,16 +18,25 @@ router.use('/current-user', users);
 router.use('/auth', authentications);
 
 router.route('/users', (req, res) => {
-  httpError.NOT_FOUND(req, res);
+    httpError.NOT_FOUND(req, res);
 });
 
 router.route('/')
-    .all(function(req, res) {
+    .get((req, res) => {
 
-        console.log('{"message": "not implemented"}');
+        var response = {
+            "data": ("BCF API Server - Schema " + res.locals.api_version),
+            "links": {"projects": res.locals.selfUrl + '/projects'}
+        };
 
-        res.status(501);
-        res.send('{"message": "not implemented"}');
+        res
+            .status(200)
+            .send(response);
+    })
+    .all((req, res) => {
+        res
+            .status(501)
+            .send('{"message": "not implemented"}');
     });
 
 module.exports = router;

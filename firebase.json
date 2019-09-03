@@ -18,9 +18,6 @@
                         "functions/wallaby.js"
                 ],
                 "rewrites": [
-                {
-                        "source": "/rest/api/**",
-                        "function": "bcf"
-                }]
+                ]
         }
 }

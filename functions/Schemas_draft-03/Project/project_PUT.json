@@ -7,6 +7,10 @@
         "name": {
             "type": "string",
             "required": true
+        },
+        "self": {
+            "type": "string",
+            "required": false
         }
     }
 }

@@ -8,5 +8,9 @@
             "required": true,
             "type": "string"
         }
-    }
+    },
+        "self": {
+            "type": "string",
+            "required": false
+        }
 }
